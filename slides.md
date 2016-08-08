@@ -1,4 +1,4 @@
-# Async IO From Group Up
+# Async IO From Ground Up
 
 ---
 
@@ -91,7 +91,6 @@
 
 * Generators
 * Coroutines
-* Event Loops
 * `async` and `await`
 
 ---
@@ -117,8 +116,7 @@ Lets try it out:
 
 ---
 
-# Generators (2)
-
+# Generators
 
     !py3
     def squares(numbers):
@@ -154,7 +152,7 @@ Lets try it out:
 
 ---
 
-## Coroutines
+# Coroutines
 
     !py3
     def abc():                   def xyz():     
@@ -184,7 +182,7 @@ Output:
     Z
 
 --- 
-## Coroutines
+# Coroutines
 
 
     !py3
@@ -216,17 +214,15 @@ Output:
     3
 
 ---
-### Earlier Limitations
+# Earlier Limitations
 
-The implementation of generators until Python 3.3 had the following limitations.
-
-It was not possible to:
+Until Python 3.3, it was not possible to:
 
 * delegate control to a sub-generator
 * return a value from a generator
 
 --- 
-### Delegate control to a sub-generator
+# Delegate control to a sub-generator
 
     !py3
     def display2(values1, values2):
@@ -244,7 +240,7 @@ The new construct `yield from` was introduced to sovle this:
 
 ---
 
-### Returning a value from a generator
+# Returning a value from a generator
 
     !py3
     def square(x):
@@ -266,3 +262,78 @@ Support for returning values from generators was added in Python 3.3.
         x2 = yield from square(x)
         y2 = yield from square(y)
         return x2 + y2
+
+---
+
+# Generators are overloaded
+
+* Used to build and process data streams
+* Also used as coroutines
+
+Confusing!
+
+---
+
+# Native Coroutines
+
+The new `async` and `await` keywords are introduced in Python language to make coroutines first class concepts in Python.
+
+    !py3
+    async def square(x):
+        return x*x
+
+    async def sum_of_squares(x, y):
+        x2 = await square(x)
+        y2 = await square(y)
+        return x2 + y2
+
+---
+
+## Coroutine Protocol
+
+
+    async def square(x):
+        return x*x
+
+Lets try it out:
+
+
+    !py3
+    >>> square(4)
+    <coroutine object square at 0xb57a6510>
+
+    >>> x = square(4)
+    >>> x.send(None)
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      StopIteration: 16
+
+---
+## Generator-based coroutines
+
+It is still possible to use generator-based coroutines along with native ones. 
+But they'll have to be decorated as coroutine.
+
+    import types
+
+    @types.coroutine
+    def display(values):
+        for v in values:
+            print(v)
+            yield 
+
+    async def display2(value1, values2):
+        await display(values1)
+        await display(values2)
+
+--- 
+
+# Running Coroutines
+
+    def run(coroutine):
+        try:
+            while True:
+                coroutine.send(None)
+        except StopIteration as e:
+            return e.value
+
